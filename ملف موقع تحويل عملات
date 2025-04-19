@@ -1,0 +1,129 @@
+import { useState } from 'react';
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { DollarSign } from "lucide-react";
+
+const CurrencyConverter = () => {
+  const [amount, setAmount] = useState<string>("");
+  const [fromCurrency, setFromCurrency] = useState<string>("USD");
+  const [toCurrency, setToCurrency] = useState<string>("IQD");
+
+  // أسعار الصرف التقريبية (يمكن تحديثها حسب الأسعار الحالية)
+  const exchangeRates = {
+    USD: {
+      IQD: 1310, // 1 دولار = 1310 دينار عراقي (تقريباً)
+      KWD: 0.31, // 1 دولار = 0.31 دينار كويتي (تقريباً)
+    },
+    IQD: {
+      USD: 0.00076, // 1 دينار عراقي = 0.00076 دولار (تقريباً)
+      KWD: 0.00024, // 1 دينار عراقي = 0.00024 دينار كويتي (تقريباً)
+    },
+    KWD: {
+      USD: 3.25, // 1 دينار كويتي = 3.25 دولار (تقريباً)
+      IQD: 4250, // 1 دينار كويتي = 4250 دينار عراقي (تقريباً)
+    },
+  };
+
+  const convertCurrency = (value: string, from: string, to: string): string => {
+    if (!value || isNaN(Number(value))) return "";
+    
+    if (from === to) return value;
+    
+    const numericValue = parseFloat(value);
+    let result: number;
+
+    if (from === "USD") {
+      result = numericValue * exchangeRates.USD[to as keyof typeof exchangeRates.USD];
+    } else if (from === "IQD") {
+      result = numericValue * exchangeRates.IQD[to as keyof typeof exchangeRates.IQD];
+    } else {
+      result = numericValue * exchangeRates.KWD[to as keyof typeof exchangeRates.KWD];
+    }
+
+    return result.toFixed(2);
+  };
+
+  const handleAmountChange = (value: string) => {
+    setAmount(value);
+  };
+
+  const convertedAmount = convertCurrency(amount, fromCurrency, toCurrency);
+
+  return (
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-6 w-6" />
+          محول العملات
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label>المبلغ</Label>
+          <Input
+            type="number"
+            value={amount}
+            onChange={(e) => handleAmountChange(e.target.value)}
+            placeholder="أدخل المبلغ"
+            className="text-left"
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>من</Label>
+            <Select value={fromCurrency} onValueChange={setFromCurrency}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">دولار أمريكي (USD)</SelectItem>
+                <SelectItem value="IQD">دينار عراقي (IQD)</SelectItem>
+                <SelectItem value="KWD">دينار كويتي (KWD)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>إلى</Label>
+            <Select value={toCurrency} onValueChange={setToCurrency}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">دولار أمريكي (USD)</SelectItem>
+                <SelectItem value="IQD">دينار عراقي (IQD)</SelectItem>
+                <SelectItem value="KWD">دينار كويتي (KWD)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="pt-4 text-center">
+          <div className="text-2xl font-bold">
+            {convertedAmount ? (
+              <>
+                {convertedAmount} {toCurrency}
+              </>
+            ) : (
+              "---"
+            )}
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {amount ? (
+              <>
+                {amount} {fromCurrency} =
+              </>
+            ) : (
+              "أدخل مبلغاً للتحويل"
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default CurrencyConverter;
